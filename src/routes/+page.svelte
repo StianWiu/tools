@@ -6,6 +6,18 @@
 	let history = [];
 	let cursorPosition = 0;
 
+	const commands = {
+		help: () => {
+			return 'Available commands: ' + Object.keys(commands).join(', ');
+		},
+		greet: (name) => {
+			return 'Hello, world ' + name + '!';
+		},
+		time: () => {
+			return new Date().toLocaleTimeString();
+		}
+	};
+
 	onMount(() => {
 		name = localStorage.getItem('name') || 'username';
 		window.addEventListener('keydown', handleKey);
@@ -13,7 +25,13 @@
 
 	function handleKey(e) {
 		if (e.key === 'Enter') {
-			history.push(command);
+			console.log(command.split(" ")[0].trim())
+			console.log(command.split(" ").pop())
+			const fn = commands[command.split(" ")[0].trim()]
+			if (fn) {
+				const result = fn(command.split(' ').slice(1).join(' '))
+				history = [...history, result];
+			}
 			command = '';
 			cursorPosition = 0;
 		} else if (e.key === 'Backspace') {
@@ -62,7 +80,6 @@
 		font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
 		font-size: 16px;
 		padding: 20px;
-		white-space: pre-wrap;
 	}
 
 	.field {
@@ -77,13 +94,16 @@
 
 	.cursor {
 		display: inline-block;
-		width: 8px;
+		width: 1px;
 		height: 1em;
 		background-color: #fff;
 		animation: blink 1s steps(1) infinite;
 		margin-left: 1px;
 	}
 
+	.terminal {
+		white-space: pre-wrap;
+	}
 	@keyframes blink {
 		0%,
 		49% {
