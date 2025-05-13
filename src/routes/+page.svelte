@@ -1,62 +1,97 @@
 <script>
-  import { onMount } from "svelte";
+	import { onMount } from 'svelte';
 
-  onMount(() => {
-    
-  })
+	let name;
+	let command = '';
+	let history = [];
+	let cursorPosition = 0;
 
-  let history = [
-    "test1",
-    "test2"
-  ]
+	onMount(() => {
+		name = localStorage.getItem('name') || 'username';
+		window.addEventListener('keydown', handleKey);
+	});
 
-  
-
-  function changeName(name) {
-    localStorage
-  }
+	function handleKey(e) {
+		if (e.key === 'Enter') {
+			history.push(command);
+			command = '';
+			cursorPosition = 0;
+		} else if (e.key === 'Backspace') {
+			e.preventDefault();
+			if (cursorPosition > 0) {
+				command = command.slice(0, cursorPosition - 1) + command.slice(cursorPosition);
+				cursorPosition--;
+			}
+		} else if (e.key === 'ArrowLeft') {
+			if (cursorPosition > 0) cursorPosition--;
+		} else if (e.key === 'ArrowRight') {
+			if (cursorPosition < command.length) cursorPosition++;
+		} else if (e.key.length === 1) {
+			command = command.slice(0, cursorPosition) + e.key + command.slice(cursorPosition);
+			cursorPosition++;
+		}
+	}
 </script>
 
 <div class="terminal">
-  {#each history as command}
-  {command}
-  <br/>
-  {/each}
-  <p class="field">username@tools:~$</p>
-  <span class="cursor"></span>
+	{#each history as entry}
+		<p>{name}@tools:~$ {entry}</p>
+	{/each}
+	<div class="field">
+		<p class="precursor">{name}@tools:~$</p>
+		{#if command.length === 0}
+			<span class="cursor"></span>
+		{:else}
+			{#each Array.from(command) as char, i}
+				{#if i === cursorPosition}
+					<span class="cursor"></span>
+				{/if}
+				<span>{char}</span>
+			{/each}
+			{#if cursorPosition === command.length}
+				<span class="cursor"></span>
+			{/if}
+		{/if}
+	</div>
 </div>
-<style>
 
-  :global(body){
-    background-color: #000;
-    color: #ffff;
-    font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
-    font-size: 16px;
-  padding: 20px;
-  white-space: pre-wrap;
-}
+<style lang="scss">
+	:global(body) {
+		background-color: #000;
+		color: #fff;
+		font-family: 'Cascadia Code', Consolas, 'Courier New', monospace;
+		font-size: 16px;
+		padding: 20px;
+		white-space: pre-wrap;
+	}
 
-.field {
-  margin: 0;
-}
+	.field {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+	}
 
-.cursor {
-  display: inline-block;
-  width: 8px;
-  height: 2px;
-  background-color: #fff;
-  vertical-align: bottom;
-  animation: blink 1s steps(1) infinite;
-  margin-left: 2px;
-}
+	.precursor {
+		margin: 0;
+	}
 
-@keyframes blink {
-  0%, 49% {
-    opacity: 1;
-  }
-  50%, 100% {
-    opacity: 0;
-  }
-}
+	.cursor {
+		display: inline-block;
+		width: 8px;
+		height: 1em;
+		background-color: #fff;
+		animation: blink 1s steps(1) infinite;
+		margin-left: 1px;
+	}
 
+	@keyframes blink {
+		0%,
+		49% {
+			opacity: 1;
+		}
+		50%,
+		100% {
+			opacity: 0;
+		}
+	}
 </style>
